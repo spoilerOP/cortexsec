@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,12 +13,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔐 API KEY (from .env)
+// 🔐 API KEY (from Environment)
 const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
-    console.error("❌ Missing GEMINI_API_KEY in .env");
-    process.exit(1);
+    console.warn("⚠️ WARNING: GEMINI_API_KEY is not set. AI features will not work.");
 }
 
 app.post("/analyze", async (req, res) => {
