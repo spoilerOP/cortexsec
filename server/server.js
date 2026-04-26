@@ -165,7 +165,13 @@ app.post("/ask", async (req, res) => {
 });
 
 // 🌐 SERVE FRONTEND (In Production)
-const distPath = path.join(__dirname, "../dist");
+import fs from "fs";
+const possibleDistPath1 = path.join(__dirname, "../dist");
+const possibleDistPath2 = path.join(__dirname, "./dist");
+
+const distPath = fs.existsSync(possibleDistPath1) ? possibleDistPath1 : possibleDistPath2;
+
+console.log("📂 Serving frontend from:", distPath);
 app.use(express.static(distPath));
 
 app.get("*", (req, res) => {
@@ -173,7 +179,7 @@ app.get("*", (req, res) => {
 });
 
 // 🚀 START SERVER (PRODUCTION SAFE)
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`✅ AI server running on http://0.0.0.0:${PORT}`);

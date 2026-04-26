@@ -9,10 +9,12 @@ RUN npm run build
 # Production stage for Node Backend
 FROM node:20-slim
 WORKDIR /app
-COPY server/package*.json ./server/
-RUN cd server && npm install --production
-COPY server/ ./server/
+# Copy server dependencies and install
+COPY server/package*.json ./
+RUN npm install --production
+# Copy server source and built frontend
+COPY server/server.js ./
 COPY --from=build /app/dist ./dist
 
-EXPOSE 5000
-CMD ["node", "server/server.js"]
+EXPOSE 8080
+CMD ["node", "server.js"]
