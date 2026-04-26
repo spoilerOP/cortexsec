@@ -222,29 +222,29 @@ Content-Type: application/json
             </div>
 
             {/* Main */}
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 <div className="card p-4">
                     <h2 className="text-gray-300 mb-2">Request</h2>
                     <textarea
-                        className="w-full h-64 bg-black/60 text-green-400 font-mono p-3 rounded"
+                        className="w-full h-48 md:h-64 bg-black/60 text-green-400 font-mono p-3 rounded text-sm"
                         value={request}
                         onChange={(e) => setRequest(e.target.value)}
                     />
-                    <div className="flex gap-2 mt-3">
-                        <button onClick={() => sendRequest("test", 0, 1)} className="bg-green-400 px-4 py-2 rounded">
+                    <div className="flex flex-wrap gap-2 mt-3">
+                        <button onClick={() => sendRequest("test", 0, 1)} className="bg-green-400 text-black px-4 py-2 rounded text-sm font-medium">
                             Send
                         </button>
-                        <button onClick={startAttack} className="bg-yellow-400 px-4 py-2 rounded">
+                        <button onClick={startAttack} className="bg-yellow-400 text-black px-4 py-2 rounded text-sm font-medium">
                             Start Attack
                         </button>
-                        <button onClick={stopAttack} className="bg-red-500 px-4 py-2 rounded">
+                        <button onClick={stopAttack} className="bg-red-500 text-white px-4 py-2 rounded text-sm font-medium">
                             Stop
                         </button>
                         <button
                             onClick={handleAnalyze}
                             disabled={analyzing || logs.length === 0}
-                            className="bg-purple-600 px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700 transition disabled:opacity-50"
+                            className="bg-purple-600 px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700 transition disabled:opacity-50 text-sm font-medium"
                         >
                             {analyzing ? "⌛ Analyzing..." : "🧠 Analyze Attack"}
                         </button>
@@ -253,7 +253,7 @@ Content-Type: application/json
 
                 <div className="card p-4">
                     <h2 className="text-gray-300 mb-2">Response</h2>
-                    <pre className="text-blue-400 h-64 overflow-auto">
+                    <pre className="text-blue-400 h-48 md:h-64 overflow-auto text-sm font-mono bg-black/40 p-3 rounded">
                         {response || "No response yet..."}
                     </pre>
                 </div>

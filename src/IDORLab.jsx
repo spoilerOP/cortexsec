@@ -110,28 +110,30 @@ Explain why this is dangerous and how to fix it.
             <div className="card p-4">
                 <h2 className="text-gray-300 mb-2">Request</h2>
 
-                <div className="flex gap-3 items-center">
+                <div className="flex flex-wrap gap-3 items-center">
                     <input
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
-                        className="bg-black/60 border border-white/10 p-2 rounded text-white"
+                        className="bg-black/60 border border-white/10 p-2 rounded text-white flex-1 min-w-[120px]"
                         placeholder="Enter user ID"
                     />
 
-                    <button
-                        onClick={fetchData}
-                        className="bg-purple-500 px-4 py-2 rounded"
-                    >
-                        Fetch Data
-                    </button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <button
+                            onClick={fetchData}
+                            className="bg-purple-500 px-4 py-2 rounded flex-1 sm:flex-none text-sm font-medium"
+                        >
+                            Fetch Data
+                        </button>
 
-                    <button
-                        onClick={handleAnalyze}
-                        disabled={analyzing || logs.length === 0}
-                        className="bg-purple-600 px-4 py-2 rounded flex items-center gap-2 hover:bg-purple-700 transition disabled:opacity-50"
-                    >
-                        {analyzing ? "⌛ Analyzing..." : "🧠 Analyze Attack"}
-                    </button>
+                        <button
+                            onClick={handleAnalyze}
+                            disabled={analyzing || logs.length === 0}
+                            className="bg-purple-600 px-4 py-2 rounded flex items-center justify-center gap-2 hover:bg-purple-700 transition disabled:opacity-50 flex-1 sm:flex-none text-sm font-medium"
+                        >
+                            {analyzing ? "⌛" : "🧠"} Analyze
+                        </button>
+                    </div>
                 </div>
 
                 <p className="text-xs text-gray-500 mt-2">

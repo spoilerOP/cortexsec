@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import admin from "firebase-admin";
 
 dotenv.config();
 
@@ -13,6 +14,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// 🔥 Initialize Firestore (Optional fallback)
+let db = null;
+try {
+    admin.initializeApp();
+    db = admin.firestore();
+    console.log("🔥 Firestore initialized successfully");
+} catch (e) {
+    console.warn("⚠️ Firestore not initialized. Using in-memory storage.");
+}
+
+// In-memory fallback
+let memoryReports = [];
 
 // 🔐 API KEY (from Environment)
 const API_KEY = process.env.GEMINI_API_KEY;
@@ -160,6 +174,56 @@ app.post("/ask", async (req, res) => {
     } catch (err) {
         console.error("SERVER ERROR:", err);
         res.status(500).json({ answer: "❌ Server error" });
+    }
+});
+
+// 📊 REPORT STORAGE ENDPOINTS
+app.get("/api/reports", async (req, res) => {
+    try {
+        if (db) {
+            const snapshot = await db.collection("reports").orderBy("timestamp", "desc").get();
+            const reports = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            return res.json(reports);
+        }
+        res.json(memoryReports);
+    } catch (e) {
+        console.error("GET REPORTS ERROR:", e);
+        res.status(500).json({ error: "Failed to fetch reports" });
+    }
+});
+
+app.post("/api/reports", async (req, res) => {
+    const report = req.body;
+    report.timestamp = new Date().toISOString();
+
+    try {
+        if (db) {
+            const docRef = await db.collection("reports").add(report);
+            return res.json({ id: docRef.id, ...report });
+        }
+        
+        // Simple ID for memory storage
+        report.id = `mem_${Date.now()}`;
+        memoryReports.unshift(report);
+        res.json(report);
+    } catch (e) {
+        console.error("POST REPORT ERROR:", e);
+        res.status(500).json({ error: "Failed to save report" });
+    }
+});
+
+app.delete("/api/reports/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        if (db) {
+            await db.collection("reports").doc(id).delete();
+            return res.json({ success: true });
+        }
+        memoryReports = memoryReports.filter(r => r.id !== id);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("DELETE REPORT ERROR:", e);
+        res.status(500).json({ error: "Failed to delete report" });
     }
 });
 

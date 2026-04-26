@@ -37,3 +37,39 @@ export async function analyzeAttack(logs, labType) {
         return { answer: "❌ Error connecting to analysis server" };
     }
 }
+
+export async function getReports() {
+    try {
+        const res = await fetch(`${API_URL}/api/reports`);
+        return await res.json();
+    } catch (error) {
+        console.error("Fetch Reports Error:", error);
+        return [];
+    }
+}
+
+export async function saveReport(report) {
+    try {
+        const res = await fetch(`${API_URL}/api/reports`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(report),
+        });
+        return await res.json();
+    } catch (error) {
+        console.error("Save Report Error:", error);
+        return report;
+    }
+}
+
+export async function deleteRemoteReport(id) {
+    try {
+        const res = await fetch(`${API_URL}/api/reports/${id}`, {
+            method: "DELETE",
+        });
+        return await res.json();
+    } catch (error) {
+        console.error("Delete Report Error:", error);
+        return { success: false };
+    }
+}

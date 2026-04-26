@@ -2,9 +2,9 @@ import Lab from "./Lab";
 import jsPDF from "jspdf";
 import { useState, useEffect } from "react";
 import AIChat from "./components/AIChat";
-import { askAI } from "./utils/ai";
+import { askAI, getReports, saveReport, deleteRemoteReport } from "./utils/ai";
 import IDORLab from "./IDORLab";
-import { Radar, Bomb, Brain, Trophy } from "lucide-react";
+import { Radar, Bomb, Brain, Trophy, Menu, X } from "lucide-react";
 
 import {
   LineChart,
@@ -17,6 +17,7 @@ import {
   RadialBarChart,
   RadialBar,
   PolarAngleAxis,
+  ResponsiveContainer
 } from "recharts";
 
 export default function App() {
@@ -24,102 +25,144 @@ export default function App() {
   const [subLab, setSubLab] = useState("brute");
   const [reports, setReports] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [userProfile, setUserProfile] = useState({
     attempts: 0,
     successes: 0,
-    level: "Beginner",
+    level: "Novice",
   });
 
   useEffect(() => {
-    console.log("PROFILE UPDATED:", userProfile);
-  }, [userProfile]);
+    // 📥 Load reports from backend
+    getReports().then(data => {
+      setReports(data);
+    });
+  }, []);
+
+  const handleSaveReport = async (report) => {
+    const saved = await saveReport(report);
+    setReports((prev) => [saved, ...prev]);
+  };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[#0a0c10]">
+      
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0c10]/80 backdrop-blur-md sticky top-0 z-50">
+        <div>
+           <h1 className="text-xl font-bold tracking-tighter text-white">CORTEX<span className="text-[#00f2ff]">SEC</span></h1>
+           <p className="text-[10px] text-[#00f2ff]/60 tracking-widest uppercase">Neural Defense System</p>
+        </div>
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-400 hover:text-white">
+          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Sidebar Overlay (Mobile) */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
 
       {/* Sidebar */}
-      <div className="w-64 p-6 border-r border-white/10 backdrop-blur-md">
-        <h1 className="text-xl font-bold mb-8 text-purple-400">
-          CortexSec
-        </h1>
+      <div className={`
+        fixed inset-y-0 left-0 w-64 p-6 border-r border-white/5 bg-[#0a0c10] z-50 transform transition-transform duration-300 flex flex-col
+        md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="mb-12">
+          <h1 className="text-2xl font-extrabold tracking-tighter text-white">CORTEX<span className="text-[#00f2ff]">SEC</span></h1>
+          <p className="text-[10px] text-[#00f2ff]/60 tracking-widest uppercase font-bold">Neural Defense System</p>
+        </div>
 
-        <div className="space-y-4 text-gray-400">
+        <nav className="flex-1 space-y-2 text-sm font-semibold">
           {[
-            ["dashboard", "Dashboard"],
-            ["recon", "Recon"],
-            ["exploit", "Exploitation"],
-            ["labs", "Labs"],
-            ["reports", "Reports"],
-            ["ai", "AI Assistant"],
-          ].map(([key, label]) => (
-            <p
+            ["dashboard", "Dashboard", <Radar size={18} />],
+            ["labs", "Labs", <Bomb size={18} />],
+            ["reports", "AI Insights", <Brain size={18} />],
+            ["leaderboard", "Leaderboard", <Trophy size={18} />],
+          ].map(([key, label, icon]) => (
+            <div
               key={key}
-              onClick={() => setPage(key)}
-              className={`cursor-pointer ${page === key ? "text-purple-400" : ""}`}
+              onClick={() => {
+                setPage(key);
+                setSidebarOpen(false);
+              }}
+              className={`flex items-center gap-3 cursor-pointer px-4 py-3 rounded-lg transition-all duration-200 ${
+                page === key 
+                ? "active-nav text-[#00f2ff]" 
+                : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+              }`}
             >
+              {icon}
               {label}
-            </p>
+            </div>
           ))}
+        </nav>
+
+        {/* User Profile */}
+        <div className="pt-6 border-t border-white/5 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-2 border-[#10b981] p-0.5">
+             <div className="w-full h-full bg-[#10b981]/20 rounded-full flex items-center justify-center">
+                <span className="text-[#10b981] text-xs font-bold">GU</span>
+             </div>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-white">Guest_User</p>
+            <p className="text-[10px] text-[#10b981] font-bold uppercase tracking-wider">Rank: {userProfile.level}</p>
+          </div>
         </div>
       </div>
 
-      {/* Main */}
-      <div className="flex-1 p-6">
+      {/* Main Content */}
+      <div className="flex-1 p-4 md:p-10 overflow-x-hidden">
         {page === "dashboard" && <Dashboard reports={reports} />}
-        {page === "recon" && <Page name="Recon Module" />}
-        {page === "exploit" && <Page name="Exploitation Module" />}
-
         {page === "labs" && (
-          <div className="space-y-6">
-
-            {/* Tabs */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSubLab("brute")}
-                className={`px-4 py-2 rounded ${subLab === "brute" ? "bg-purple-500" : "bg-white/10"
-                  }`}
-              >
-                Brute Force
-              </button>
-
-              <button
-                onClick={() => setSubLab("idor")}
-                className={`px-4 py-2 rounded ${subLab === "idor" ? "bg-purple-500" : "bg-white/10"
-                  }`}
-              >
-                IDOR
-              </button>
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-extrabold tracking-tight">ACTIVE <span className="text-[#00f2ff]">MISSIONS</span></h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="card p-6 group cursor-pointer" onClick={() => setSubLab("brute")}>
+                  <div className="flex justify-between items-start mb-4">
+                     <span className="text-[10px] bg-[#10b981]/10 text-[#10b981] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Easy</span>
+                     <span className="text-xs text-gray-500 font-bold">100 PTS</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors">Login Bypass</h3>
+                  <p className="text-sm text-gray-400">Identify and exploit rate limiting flaws in authentication systems.</p>
+               </div>
+               <div className="card p-6 group cursor-pointer" onClick={() => setSubLab("idor")}>
+                  <div className="flex justify-between items-start mb-4">
+                     <span className="text-[10px] bg-[#3b82f6]/10 text-[#3b82f6] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Medium</span>
+                     <span className="text-xs text-gray-500 font-bold">250 PTS</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors">IDOR API</h3>
+                  <p className="text-sm text-gray-400">Exploit insecure direct object references to access unauthorized data.</p>
+               </div>
             </div>
 
-            {/* Content */}
-            {subLab === "brute" && (
-              <Lab
-                onSaveReport={(r) => setReports((prev) => [r, ...prev])}
-                updateProfile={setUserProfile}
-                setLogs={setLogs}
-              />
-            )}
-
-            {subLab === "idor" && (
-              <IDORLab
-                onSaveReport={(r) => setReports((prev) => [r, ...prev])}
-                setLogs={setLogs}
-              />
-            )}
-
+            <div className="mt-12">
+               {subLab === "brute" && (
+                 <Lab
+                   onSaveReport={handleSaveReport}
+                   updateProfile={setUserProfile}
+                   setLogs={setLogs}
+                 />
+               )}
+               {subLab === "idor" && (
+                 <IDORLab
+                   onSaveReport={handleSaveReport}
+                   setLogs={setLogs}
+                 />
+               )}
+            </div>
           </div>
         )}
 
         {page === "reports" && (
           <Reports reports={reports} setReports={setReports} />
-        )}
-        {page === "ai" && (
-          <AIChat
-            reports={reports}
-            logs={logs}
-            userProfile={userProfile}
-          />
         )}
       </div>
     </div>
@@ -136,222 +179,173 @@ function Dashboard({ reports }) {
     severityCount[r.severity]++;
   });
 
-  const riskScore =
-    severityCount.HIGH * 30 +
-    severityCount.MEDIUM * 15 +
-    severityCount.LOW * 5;
-  useEffect(() => {
-    let start = 0;
-    const end = Math.min(riskScore, 100);
-
-    const interval = setInterval(() => {
-      start += 2;
-      if (start >= end) {
-        start = end;
-        clearInterval(interval);
-      }
-      setAnimatedScore(start);
-    }, 20);
-
-    return () => clearInterval(interval);
-  }, [riskScore]);
+  const skillData = [
+    { name: "Week 1", value: 40 },
+    { name: "Week 2", value: 55 },
+    { name: "Week 3", value: 48 },
+    { name: "Week 4", value: 72 },
+    { name: "Week 5", value: 65 },
+    { name: "Week 6", value: 85 },
+  ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-wide">
-            Security Dashboard
-          </h1>
-          <p className="text-gray-400 text-sm">
-            Real-time visibility into threats & risk
-          </p>
-        </div>
-        <div className="text-xs text-gray-400">Last 7 days</div>
+      {/* Top Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard label="Recon" value="34%" color="#00f2ff" />
+        <StatCard label="Exploit" value="71%" color="#ef4444" />
+        <StatCard label="Creativity" value="48%" color="#eab308" />
+        <StatCard label="Score" value="142%" color="#10b981" />
       </div>
 
-      {/* Logs + Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        
+        {/* Performance Chart */}
+        <div className="xl:col-span-2 card p-8">
+           <div className="flex justify-between items-start mb-8">
+              <div>
+                 <h2 className="text-xl font-black italic uppercase tracking-tighter">Performance</h2>
+                 <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Skill Growth - Last 30 Days</p>
+              </div>
+              <div className="text-right">
+                 <p className="text-[#10b981] font-black text-xl">+12.4%</p>
+                 <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">System Efficiency</p>
+              </div>
+           </div>
 
-        {/* Recon */}
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
-  border border-white/10 rounded-xl p-4 
-  shadow-[0_0_20px_rgba(168,85,247,0.2)] 
-  hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all">
-
-          <Radar className="text-purple-400 
-    drop-shadow-[0_0_12px_rgba(168,85,247,0.9)]" />
-
-          <div>
-            <p className="text-xs text-gray-400">Recon</p>
-            <p className="text-lg text-purple-300 font-semibold">
-              {Math.floor(Math.random() * 100)}%
-            </p>
-          </div>
+           <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                 <LineChart data={skillData}>
+                    <defs>
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="name" hide />
+                    <YAxis hide />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0a0c10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      itemStyle={{ color: '#10b981' }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#10b981" 
+                      strokeWidth={4} 
+                      dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#0a0c10' }} 
+                      activeDot={{ r: 8, strokeWidth: 0 }}
+                    />
+                 </LineChart>
+              </ResponsiveContainer>
+           </div>
+           
+           <div className="flex justify-between mt-4 text-[10px] text-gray-600 font-bold uppercase tracking-widest px-2">
+              <span>Week 1</span>
+              <span>Week 2</span>
+              <span>Week 3</span>
+              <span>Week 4</span>
+           </div>
         </div>
 
-        {/* Exploit */}
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
-  border border-white/10 rounded-xl p-4 
-  shadow-[0_0_20px_rgba(239,68,68,0.2)] 
-  hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all">
+        {/* AI Insights */}
+        <div className="card p-8 flex flex-col">
+           <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 rounded-lg bg-[#10b981]/10 flex items-center justify-center">
+                    <Brain size={18} className="text-[#10b981]" />
+                 </div>
+                 <h2 className="text-lg font-black uppercase tracking-tight">AI Insights</h2>
+              </div>
+              <span className="text-[10px] bg-[#10b981]/10 text-[#10b981] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Neural Core Active</span>
+           </div>
 
-          <Bomb className="text-red-400 
-    drop-shadow-[0_0_12px_rgba(239,68,68,0.9)]" />
+           <div className="flex-1 space-y-4">
+              <InsightItem icon={<Bomb size={14} />} text="Frequent brute-force attempts detected. Efficiency low." color="#ef4444" />
+              <InsightItem icon={<Radar size={14} />} text="Strong reconnaissance pattern observed in Lab #4." color="#00f2ff" />
+              <InsightItem icon={<Trophy size={14} />} text="Missing business logic flaws in current target." color="#3b82f6" />
+           </div>
 
-          <div>
-            <p className="text-xs text-gray-400">Exploit</p>
-            <p className="text-lg text-red-300 font-semibold">
-              {Math.floor(Math.random() * 100)}%
-            </p>
-          </div>
-        </div>
-
-        {/* Creativity */}
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
-  border border-white/10 rounded-xl p-4 
-  shadow-[0_0_20px_rgba(234,179,8,0.2)] 
-  hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all">
-
-          <Brain className="text-yellow-400 
-    drop-shadow-[0_0_12px_rgba(234,179,8,0.9)]" />
-
-          <div>
-            <p className="text-xs text-gray-400">Creativity</p>
-            <p className="text-lg text-yellow-300 font-semibold">
-              {Math.floor(Math.random() * 100)}%
-            </p>
-          </div>
-        </div>
-
-        {/* Score */}
-        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
-  border border-white/10 rounded-xl p-4 
-  shadow-[0_0_20px_rgba(34,197,94,0.2)] 
-  hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all">
-
-          <Trophy className="text-green-400 
-    drop-shadow-[0_0_12px_rgba(34,197,94,0.9)]" />
-
-          <div>
-            <p className="text-xs text-gray-400">Score</p>
-            <p className="text-lg text-green-300 font-semibold">
-              {Math.floor(Math.random() * 100)}%
-            </p>
-          </div>
+           <button className="mt-8 w-full py-3 border border-white/5 rounded-lg text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:border-white/20 transition-all">
+              Generate New Analysis
+           </button>
         </div>
 
       </div>
 
-      {/* 🔴 PRIMARY ROW */}
-      <div className="grid grid-cols-3 gap-6">
-
-        {/* Risk */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 
-rounded-2xl p-6 flex flex-col items-center justify-center 
-relative overflow-hidden 
-shadow-[0_0_30px_rgba(139,92,246,0.15)] 
-hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] 
-transition-all duration-300">
-          <div className={`absolute inset-0 blur-2xl transition-all duration-500
-  ${animatedScore > 70
-              ? "bg-red-500/20"
-              : animatedScore > 30
-                ? "bg-yellow-500/20"
-                : "bg-green-500/20"
-            }
-`}></div>
-
-          <p className="text-gray-400 mb-2 z-10">Risk Score</p>
-
-          <div className="risk-glow">
-            <RadialBarChart
-              width={200}
-              height={200}
-              innerRadius="70%"
-              outerRadius="100%"
-              data={[{ value: animatedScore }]}
-            >
-              <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-
-              <RadialBar
-                dataKey="value"
-                cornerRadius={10}
-                fill={
-                  animatedScore > 70
-                    ? "#ef4444"
-                    : animatedScore > 30
-                      ? "#eab308"
-                      : "#22c55e"
-                }
-                animationDuration={800}
-              />
-            </RadialBarChart>
-          </div>
-
-          <div className="absolute text-center">
-            <h2 className="text-3xl text-red-400 font-bold">
-              {animatedScore}
-            </h2>
-            <p className="text-xs text-gray-400">
-              {riskScore > 70 ? "High" : riskScore > 30 ? "Medium" : "Low"}
-            </p>
-          </div>
-        </div>
-
-        {/* Threats */}
-        <div className="col-span-2 card p-5 border border-red-500/20">
-          <h2 className="text-red-400 mb-3">Active Threats</h2>
-
-          <div className="space-y-3 text-sm">
-            <ThreatItem label="Brute-force detected" level="HIGH" />
-            <ThreatItem label="Suspicious IP activity" level="MEDIUM" />
-            <ThreatItem label="Auth bypass attempt" level="HIGH" />
-          </div>
-        </div>
-
+      {/* Lower Row: Terminal & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+         <div className="lg:col-span-2">
+            <Terminal logs={logs} />
+         </div>
+         <div className="card p-8">
+            <h2 className="text-lg font-black uppercase tracking-tight mb-6">Recent Activity</h2>
+            <div className="space-y-4">
+               {reports.slice(0, 3).map((r, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/5">
+                     <div className="glow-dot" style={{ backgroundColor: r.severity === 'HIGH' ? '#ef4444' : '#10b981' }} />
+                     <div>
+                        <p className="text-xs font-bold text-white">{r.vuln}</p>
+                        <p className="text-[10px] text-gray-500">{r.time}</p>
+                     </div>
+                  </div>
+               ))}
+               {reports.length === 0 && <p className="text-sm text-gray-600 italic">No activity recorded yet.</p>}
+            </div>
+         </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-2 gap-6">
+    </div>
+  );
+}
 
-        <div className="card p-4">
-          <h2 className="text-purple-400 mb-2">Severity</h2>
+function StatCard({ label, value, color }) {
+  return (
+    <div className="card p-6 flex flex-col items-center justify-center text-center group">
+       <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-1">{label}</p>
+       <p className="text-2xl font-black italic tracking-tighter transition-all duration-300 group-hover:scale-110" style={{ color }}>{value}</p>
+       <div className="w-8 h-1 mt-4 rounded-full opacity-20 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: color }} />
+    </div>
+  );
+}
 
-          <BarChart width={300} height={200} data={[
-            { name: "HIGH", value: severityCount.HIGH },
-            { name: "MEDIUM", value: severityCount.MEDIUM },
-            { name: "LOW", value: severityCount.LOW },
-          ]}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value" fill="#a855f7" />
-          </BarChart>
-        </div>
+function InsightItem({ icon, text, color }) {
+  return (
+    <div className="flex gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors group">
+       <div className="mt-1 p-2 rounded-lg bg-white/5 text-gray-400 group-hover:text-white transition-colors" style={{ color: color + '44' }}>
+          {icon}
+       </div>
+       <p className="text-xs text-gray-400 leading-relaxed group-hover:text-gray-200 transition-colors">{text}</p>
+    </div>
+  );
+}
 
-        <div className="card p-4">
-          <h2 className="text-purple-400 mb-2">Activity</h2>
+function Terminal({ logs }) {
+  const displayLogs = logs.length > 0 ? logs : [
+    "Initializing neural scan engine...",
+    "Mapping attack surface...",
+    "Waiting for input..."
+  ];
 
-          <LineChart width={300} height={200} data={[
-            { day: "Mon", value: 2 },
-            { day: "Tue", value: 4 },
-            { day: "Wed", value: 3 },
-            { day: "Thu", value: 6 },
-            { day: "Fri", value: 5 },
-          ]}>
-            <XAxis dataKey="day" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="value" stroke="#22c55e" />
-          </LineChart>
-        </div>
-
-      </div>
-
-
+  return (
+    <div className="terminal-window rounded-xl overflow-hidden shadow-2xl h-full flex flex-col min-h-[300px]">
+       <div className="terminal-header px-4 py-2 flex items-center justify-between">
+          <div className="flex gap-1.5">
+             <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
+             <div className="w-2.5 h-2.5 rounded-full bg-[#eab308]" />
+             <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]" />
+          </div>
+          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">bash — cortex_scan.sh</p>
+          <div className="w-10" />
+       </div>
+       <div className="p-6 flex-1 text-sm text-[#10b981] font-mono space-y-1 overflow-auto max-h-[300px]">
+          <p className="text-white mb-2"><span className="text-[#10b981]">root@cortex</span>:<span className="text-[#3b82f6]">~</span>$ ./cortex_scan.sh --target internal_api_v2</p>
+          {displayLogs.map((log, i) => (
+             <p key={i} className="opacity-80"><span className="opacity-40">[INFO]</span> {log}</p>
+          ))}
+          <p className="animate-pulse">_</p>
+       </div>
     </div>
   );
 }
@@ -389,7 +383,8 @@ function Reports({ reports, setReports }) {
   const [sort, setSort] = useState("latest");
 
   // 🗑 Delete
-  const deleteReport = (id) => {
+  const deleteReport = async (id) => {
+    await deleteRemoteReport(id);
     setReports((prev) => prev.filter((r) => r.id !== id));
   };
 
@@ -442,7 +437,7 @@ function Reports({ reports, setReports }) {
       </h1>
 
       {/* Controls */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
 
         <input
           type="text"

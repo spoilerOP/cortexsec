@@ -4,7 +4,15 @@ $PROJECT_ID = "cortexsec"
 $REGION = "us-central1"
 $SERVICE_NAME = "cortexsec-app"
 $IMAGE_NAME = "gcr.io/$PROJECT_ID/$SERVICE_NAME"
-$API_KEY = "AIzaSyAjHaoxIkHZTKB54bDr6ziRvFor_4_9UR0"
+
+# 🔒 Securely load API Key from .env
+$ENV_FILE = "./server/.env"
+if (Test-Path $ENV_FILE) {
+    $API_KEY = (Get-Content $ENV_FILE | Select-String "GEMINI_API_KEY=").ToString().Split("=")[1].Trim()
+} else {
+    Write-Error ".env file not found! Please create one in the server directory."
+    exit 1
+}
 
 Write-Host "Starting deployment for project: $PROJECT_ID" -ForegroundColor Cyan
 
