@@ -36,6 +36,7 @@ Visualize your security posture:
 - **Data Visualization**: Severity distribution and activity trends powered by Recharts.
 
 ### 📄 Professional Reporting
+- **Persistent Storage**: All reports are saved to a **Google Cloud Firestore** database, ensuring you never lose your progress even after a refresh or logout.
 - **Auto-Generation**: Instant creation of structured vulnerability reports.
 - **Compliance Ready**: Severity classification, impact analysis, and remediation steps.
 - **Exportable**: Save findings as PDF reports for documentation.
@@ -54,6 +55,7 @@ CortexSec doesn't just use a generic chatbot. Our AI is a **system-aware securit
 
 - **Frontend**: React (Vite), Tailwind CSS, Recharts, Lucide Icons
 - **Backend**: Node.js, Express
+- **Database**: Google Cloud Firestore (Persistent Storage)
 - **Intelligence**: Google Gemini AI (Pro & Flash models)
 - **Deployment**: Google Cloud Run (Containerized Full-Stack)
 
@@ -72,7 +74,12 @@ Unlike static learning platforms, CortexSec is a **hybrid analysis tool**. It si
 ---
 
 ## 📸 Screenshots
-*(Add high-quality screenshots of the Dashboard, Labs, and AI Analysis here)*
+
+
+![alt text](image.png)
+![alt text](image-1.png)
+![alt text](image-2.png)
+![alt text](image-3.png)
 
 ---
 
