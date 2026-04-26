@@ -1,6 +1,8 @@
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+
 export async function askAI(question) {
     try {
-        const res = await fetch("http://127.0.0.1:5000/ask", {
+        const res = await fetch(`${API_URL}/ask`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -22,7 +24,7 @@ export async function askAI(question) {
 
 export async function analyzeAttack(logs, labType) {
     try {
-        const res = await fetch("http://127.0.0.1:5000/analyze", {
+        const res = await fetch(`${API_URL}/analyze`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
