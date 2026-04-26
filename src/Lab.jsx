@@ -1,0 +1,253 @@
+import { useState, useRef } from "react";
+
+export default function Lab({ onSaveReport, setLogs: setGlobalLogs, updateProfile }) {
+    const [request, setRequest] = useState(`POST /login HTTP/1.1
+Host: target.com
+Content-Type: application/json
+
+{"username":"admin","password":"§password§"}`);
+
+    const [response, setResponse] = useState("");
+    const [logs, setLogs] = useState([]);
+    const [running, setRunning] = useState(false);
+
+    const [progress, setProgress] = useState(0);
+    const [probability, setProbability] = useState(0);
+    const [found, setFound] = useState(false);
+
+    const foundRef = useRef(false);
+    const intervalRef = useRef(null);
+
+    const [payloadInput, setPayloadInput] = useState(
+        "1234\npassword\nadmin\nadmin123\nroot"
+    );
+
+    const correctPassword = "admin123";
+
+    // 🧠 Probability
+    const calculateProbability = (logs, index, total, isSuccess) => {
+        if (isSuccess) return 100;
+
+        const attempts = index + 1;
+        const failCount = logs.filter((l) => l.includes("FAIL")).length;
+
+        let score =
+            (attempts / total) * 50 +
+            (failCount / Math.max(attempts, 1)) * 50;
+
+        score += Math.random() * 3;
+
+        return Math.min(Math.floor(score), 95);
+    };
+
+    // 🔐 Send request
+    const sendRequest = (payload, index = 0, total = 1) => {
+        if (foundRef.current) return;
+
+        const req = request.replace("§password§", payload);
+
+        const password =
+            req.match(/"password":"(.*?)"/)?.[1] || "";
+
+        const isSuccess = password === correctPassword;
+
+        const status = isSuccess ? "SUCCESS" : "FAIL";
+        const res = isSuccess
+            ? "HTTP/1.1 200 OK\n\nWelcome admin"
+            : "HTTP/1.1 401 Unauthorized\n\nInvalid credentials";
+
+        // ✅ determine success FIRST
+        let didSuccess = false;
+        if (isSuccess && !foundRef.current) {
+            foundRef.current = true;
+            didSuccess = true;
+        }
+
+        // ✅ SAFE PROFILE UPDATE (no side effects inside)
+        if (updateProfile) {
+            updateProfile((prev) => {
+                const attempts = prev.attempts + 1;
+
+                let successes = prev.successes;
+                let level = prev.level;
+
+                if (didSuccess) {
+                    successes = prev.successes + 1;
+
+                    if (successes >= 2) level = "Advanced";
+                    else if (successes >= 1) level = "Intermediate";
+                    else level = "Beginner";
+                }
+
+                return {
+                    ...prev,
+                    attempts,
+                    successes,
+                    level,
+                };
+            });
+        }
+
+        // ✅ SIDE EFFECTS (outside state update)
+        if (didSuccess) {
+            clearInterval(intervalRef.current);
+            setRunning(false);
+            setFound(true);
+
+            if (onSaveReport) {
+                onSaveReport({
+                    id: Date.now(),
+                    vuln: "No Rate Limiting",
+                    severity: "HIGH",
+                    endpoint: "/login",
+                    impact: "Brute-force possible",
+                    time: new Date().toLocaleString(),
+                });
+            }
+        }
+
+        // 📊 Progress
+        const prog = Math.floor(((index + 1) / total) * 100);
+        setProgress(prog);
+
+        // 🎯 Probability
+        const prob = calculateProbability(logs, index, total, isSuccess);
+        setProbability(prob);
+
+        // ❗ prevent overwrite after success
+        if (!foundRef.current || isSuccess) {
+            setResponse(res);
+        }
+
+        const newLog = `${status} → admin:${password}`;
+
+        setLogs((prev) => [newLog, ...prev]);
+
+        if (setGlobalLogs) {
+            setGlobalLogs((prev) => [newLog, ...prev]);
+        }
+    };
+
+    // 🚀 Start attack
+    const startAttack = () => {
+        if (running) return;
+
+        setRunning(true);
+        setProgress(0);
+        setProbability(0);
+        setFound(false);
+        foundRef.current = false;
+
+        const payloads = payloadInput.split("\n");
+        let i = 0;
+
+        intervalRef.current = setInterval(() => {
+            if (i >= payloads.length || foundRef.current) {
+                clearInterval(intervalRef.current);
+                setRunning(false);
+                return;
+            }
+
+            sendRequest(payloads[i], i, payloads.length);
+            i++;
+        }, 400);
+    };
+
+    const stopAttack = () => {
+        clearInterval(intervalRef.current);
+        setRunning(false);
+    };
+
+    return (
+        <div className="space-y-6">
+
+            <div>
+                <h1 className="text-2xl font-semibold text-purple-400">
+                    Intruder Lab
+                </h1>
+                <p className="text-gray-400 text-sm">
+                    Simulate brute-force attack (No Rate Limiting)
+                </p>
+            </div>
+
+            {/* Progress */}
+            <div className="card p-4">
+                <p className="text-gray-400 text-sm mb-2">Attack Progress</p>
+                <div className="w-full bg-black/40 rounded h-3 overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{progress}%</p>
+            </div>
+
+            {/* Probability */}
+            <div className="card p-4">
+                <p className="text-gray-400 text-sm mb-2">Success Probability</p>
+                <div className="text-3xl font-bold">
+                    <span className={
+                        probability > 70
+                            ? "text-red-400"
+                            : probability > 40
+                                ? "text-yellow-400"
+                                : "text-green-400"
+                    }>
+                        {probability}%
+                    </span>
+                </div>
+            </div>
+
+            {/* Main */}
+            <div className="grid grid-cols-2 gap-6">
+
+                <div className="card p-4">
+                    <h2 className="text-gray-300 mb-2">Request</h2>
+                    <textarea
+                        className="w-full h-64 bg-black/60 text-green-400 font-mono p-3 rounded"
+                        value={request}
+                        onChange={(e) => setRequest(e.target.value)}
+                    />
+                    <div className="flex gap-2 mt-3">
+                        <button onClick={() => sendRequest("test", 0, 1)} className="bg-green-400 px-4 py-2 rounded">
+                            Send
+                        </button>
+                        <button onClick={startAttack} className="bg-yellow-400 px-4 py-2 rounded">
+                            Start Attack
+                        </button>
+                        <button onClick={stopAttack} className="bg-red-500 px-4 py-2 rounded">
+                            Stop
+                        </button>
+                    </div>
+                </div>
+
+                <div className="card p-4">
+                    <h2 className="text-gray-300 mb-2">Response</h2>
+                    <pre className="text-blue-400 h-64 overflow-auto">
+                        {response || "No response yet..."}
+                    </pre>
+                </div>
+            </div>
+
+            {/* Logs */}
+            <div className="card p-4 h-48 overflow-auto font-mono">
+                <h2 className="text-gray-300 mb-2">Live Logs</h2>
+
+                {logs.length === 0 ? (
+                    <p className="text-gray-500">No logs yet...</p>
+                ) : (
+                    logs.map((l, i) => {
+                        const isSuccess = l.includes("SUCCESS");
+                        return (
+                            <div key={i} className={`flex justify-between text-sm ${isSuccess ? "text-green-400" : "text-red-400"}`}>
+                                <span>{l}</span>
+                                <span>{isSuccess ? "✔" : "✖"}</span>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+        </div>
+    );
+}
