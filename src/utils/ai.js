@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://localhost:8080" : "");
 
 export async function askAI(question) {
     try {
@@ -18,7 +18,7 @@ export async function askAI(question) {
         return data.answer;
     } catch (error) {
         console.error("AI API Error:", error);
-        return "❌ Error communicating with AI server. Make sure your local server is running on port 5000.";
+        return `❌ Error communicating with AI server. Make sure your backend is running at ${API_URL || "the same origin"}.`;
     }
 }
 

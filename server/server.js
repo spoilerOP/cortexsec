@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 
 dotenv.config();
 
@@ -163,7 +164,6 @@ app.post("/ask", async (req, res) => {
 });
 
 // 🌐 SERVE FRONTEND (In Production)
-import fs from "fs";
 const possibleDistPath1 = path.join(__dirname, "../dist");
 const possibleDistPath2 = path.join(__dirname, "./dist");
 
@@ -172,13 +172,17 @@ const distPath = fs.existsSync(possibleDistPath1) ? possibleDistPath1 : possible
 console.log("📂 Serving frontend from:", distPath);
 app.use(express.static(distPath));
 
-app.get("*", (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
 });
 
 // 🚀 START SERVER (PRODUCTION SAFE)
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`✅ AI server running on http://0.0.0.0:${PORT}`);
-});
+try {
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log(`✅ AI server running on http://0.0.0.0:${PORT}`);
+    });
+} catch (error) {
+    console.error("❌ FAILED TO START SERVER:", error);
+}

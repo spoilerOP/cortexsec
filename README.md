@@ -1,6 +1,8 @@
 # CortexSec 🛡️
 ### AI-Powered Cybersecurity Learning & Analysis Platform
 
+🌐 **Live Demo**: [https://cortexsec-app-480155081838.us-central1.run.app](https://cortexsec-app-480155081838.us-central1.run.app)
+
 CortexSec is a modern, context-aware cybersecurity ecosystem designed to bridge the gap between theoretical learning and practical security analysis. It combines interactive attack labs with an intelligent AI engine that acts as both a SOC mentor and a technical vulnerability analyzer.
 
 ---
@@ -53,7 +55,7 @@ CortexSec doesn't just use a generic chatbot. Our AI is a **system-aware securit
 - **Frontend**: React (Vite), Tailwind CSS, Recharts, Lucide Icons
 - **Backend**: Node.js, Express
 - **Intelligence**: Google Gemini AI (Pro & Flash models)
-- **Deployment**: Vercel (Frontend), Render (Backend)
+- **Deployment**: Google Cloud Run (Containerized Full-Stack)
 
 ---
 
