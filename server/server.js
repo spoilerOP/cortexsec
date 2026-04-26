@@ -2,8 +2,13 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -157,6 +162,14 @@ app.post("/ask", async (req, res) => {
         console.error("SERVER ERROR:", err);
         res.status(500).json({ answer: "❌ Server error" });
     }
+});
+
+// 🌐 SERVE FRONTEND (In Production)
+const distPath = path.join(__dirname, "../dist");
+app.use(express.static(distPath));
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
 });
 
 // 🚀 START SERVER (PRODUCTION SAFE)
