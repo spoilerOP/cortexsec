@@ -17,6 +17,80 @@ if (!API_KEY) {
     process.exit(1);
 }
 
+app.post("/analyze", async (req, res) => {
+    const { logs, labType } = req.body;
+
+    if (!logs || !logs.length) {
+        return res.json({ answer: "⚠️ No logs provided for analysis" });
+    }
+
+    const prompt = `
+Analyze these cybersecurity attack logs from a ${labType} lab:
+${logs.join("\n")}
+
+Identify the vulnerability and return a structured JSON response.
+
+CRITICAL RULES:
+- Use precise vulnerability names:
+  - "No Rate Limiting (Brute Force Attack)" (for brute force labs)
+  - "IDOR (Broken Access Control)" (for user data access labs)
+- NEVER use generic names like "Weak Password".
+- Format must be EXACTLY:
+{
+  "vulnerability": "Precise Name",
+  "severity": "HIGH/MEDIUM/LOW",
+  "analysis": "Detailed but concise explanation of why the attack worked",
+  "impact": "The security impact on the system",
+  "fix": ["Actionable step 1", "Actionable step 2"]
+}
+
+Do not include any other text, only the JSON.
+`;
+
+    try {
+        const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-goog-api-key": API_KEY,
+            },
+            body: JSON.stringify({
+                contents: [
+                    {
+                        parts: [{ text: prompt }],
+                    },
+                ],
+            }),
+        }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMsg = data.error?.message || "Unknown error";
+            return res.json({ answer: `❌ API Error: ${errorMsg}` });
+        }
+
+        let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        
+        // Clean up JSON if AI adds markdown blocks
+        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        try {
+            const analysis = JSON.parse(text);
+            res.json(analysis);
+        } catch (e) {
+            console.error("JSON PARSE ERROR:", text);
+            res.json({ answer: "❌ Failed to parse AI analysis into JSON" });
+        }
+
+    } catch (err) {
+        console.error("SERVER ERROR:", err);
+        res.status(500).json({ answer: "❌ Server error" });
+    }
+});
+
 app.post("/ask", async (req, res) => {
     const { question } = req.body;
 
@@ -53,7 +127,7 @@ app.post("/ask", async (req, res) => {
             const errorMsg = data.error?.message || "Unknown error";
 
             // 🧠 Handle quota
-            if (errorMsg.includes("quota")) {
+            if (errorMsg.toLowerCase().includes("quota")) {
                 return res.json({
                     answer: "⚠️ AI is busy right now. Please wait a few seconds and try again.",
                 });

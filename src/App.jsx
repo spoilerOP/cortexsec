@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import AIChat from "./components/AIChat";
 import { askAI } from "./utils/ai";
 import IDORLab from "./IDORLab";
-
+import { Radar, Bomb, Brain, Trophy } from "lucide-react";
 
 import {
   LineChart,
@@ -114,7 +114,13 @@ export default function App() {
         {page === "reports" && (
           <Reports reports={reports} setReports={setReports} />
         )}
-        {page === "ai" && <AIChat />}
+        {page === "ai" && (
+          <AIChat
+            reports={reports}
+            logs={logs}
+            userProfile={userProfile}
+          />
+        )}
       </div>
     </div>
   );
@@ -166,12 +172,97 @@ function Dashboard({ reports }) {
         <div className="text-xs text-gray-400">Last 7 days</div>
       </div>
 
+      {/* Logs + Stats */}
+      <div className="grid grid-cols-4 gap-4">
+
+        {/* Recon */}
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
+  border border-white/10 rounded-xl p-4 
+  shadow-[0_0_20px_rgba(168,85,247,0.2)] 
+  hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all">
+
+          <Radar className="text-purple-400 
+    drop-shadow-[0_0_12px_rgba(168,85,247,0.9)]" />
+
+          <div>
+            <p className="text-xs text-gray-400">Recon</p>
+            <p className="text-lg text-purple-300 font-semibold">
+              {Math.floor(Math.random() * 100)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Exploit */}
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
+  border border-white/10 rounded-xl p-4 
+  shadow-[0_0_20px_rgba(239,68,68,0.2)] 
+  hover:shadow-[0_0_30px_rgba(239,68,68,0.5)] transition-all">
+
+          <Bomb className="text-red-400 
+    drop-shadow-[0_0_12px_rgba(239,68,68,0.9)]" />
+
+          <div>
+            <p className="text-xs text-gray-400">Exploit</p>
+            <p className="text-lg text-red-300 font-semibold">
+              {Math.floor(Math.random() * 100)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Creativity */}
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
+  border border-white/10 rounded-xl p-4 
+  shadow-[0_0_20px_rgba(234,179,8,0.2)] 
+  hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all">
+
+          <Brain className="text-yellow-400 
+    drop-shadow-[0_0_12px_rgba(234,179,8,0.9)]" />
+
+          <div>
+            <p className="text-xs text-gray-400">Creativity</p>
+            <p className="text-lg text-yellow-300 font-semibold">
+              {Math.floor(Math.random() * 100)}%
+            </p>
+          </div>
+        </div>
+
+        {/* Score */}
+        <div className="flex items-center gap-3 bg-white/5 backdrop-blur-xl 
+  border border-white/10 rounded-xl p-4 
+  shadow-[0_0_20px_rgba(34,197,94,0.2)] 
+  hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transition-all">
+
+          <Trophy className="text-green-400 
+    drop-shadow-[0_0_12px_rgba(34,197,94,0.9)]" />
+
+          <div>
+            <p className="text-xs text-gray-400">Score</p>
+            <p className="text-lg text-green-300 font-semibold">
+              {Math.floor(Math.random() * 100)}%
+            </p>
+          </div>
+        </div>
+
+      </div>
+
       {/* 🔴 PRIMARY ROW */}
       <div className="grid grid-cols-3 gap-6">
 
         {/* Risk */}
-        <div className="card p-6 flex flex-col items-center justify-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-red-500/10 blur-2xl"></div>
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 
+rounded-2xl p-6 flex flex-col items-center justify-center 
+relative overflow-hidden 
+shadow-[0_0_30px_rgba(139,92,246,0.15)] 
+hover:shadow-[0_0_50px_rgba(139,92,246,0.3)] 
+transition-all duration-300">
+          <div className={`absolute inset-0 blur-2xl transition-all duration-500
+  ${animatedScore > 70
+              ? "bg-red-500/20"
+              : animatedScore > 30
+                ? "bg-yellow-500/20"
+                : "bg-green-500/20"
+            }
+`}></div>
 
           <p className="text-gray-400 mb-2 z-10">Risk Score</p>
 
@@ -260,28 +351,6 @@ function Dashboard({ reports }) {
 
       </div>
 
-      {/* Logs + Stats */}
-      <div className="grid grid-cols-2 gap-6">
-
-        <div className="card p-5 text-green-400 text-sm" style={{ fontFamily: 'JetBrains Mono' }}>
-          <p>$ scanning target...</p>
-          <p>$ vulnerability found: SQL Injection</p>
-          <p>$ exploit deployed</p>
-          <p>$ access granted</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {["Recon", "Exploit", "Creativity", "Score"].map((s, i) => (
-            <div key={i} className="card p-4 opacity-80">
-              <p className="text-gray-400 text-xs">{s}</p>
-              <h3 className="text-lg text-purple-300">
-                {Math.floor(Math.random() * 100)}%
-              </h3>
-            </div>
-          ))}
-        </div>
-
-      </div>
 
     </div>
   );
