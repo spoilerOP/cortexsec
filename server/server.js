@@ -50,8 +50,17 @@ app.post("/ask", async (req, res) => {
 
         // ❌ API ERROR HANDLING
         if (!response.ok) {
+            const errorMsg = data.error?.message || "Unknown error";
+
+            // 🧠 Handle quota
+            if (errorMsg.includes("quota")) {
+                return res.json({
+                    answer: "⚠️ AI is busy right now. Please wait a few seconds and try again.",
+                });
+            }
+
             return res.json({
-                answer: `❌ API Error: ${data.error?.message || "Unknown error"}`,
+                answer: `❌ API Error: ${errorMsg}`,
             });
         }
 
