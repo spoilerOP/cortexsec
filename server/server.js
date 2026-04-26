@@ -162,6 +162,6 @@ app.post("/ask", async (req, res) => {
 // 🚀 START SERVER (PRODUCTION SAFE)
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`✅ AI server running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ AI server running on http://0.0.0.0:${PORT}`);
 });
