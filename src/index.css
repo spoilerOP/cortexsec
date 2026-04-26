@@ -2,11 +2,12 @@
 @import "tailwindcss";
 
 :root {
-  --bg-main: #0a0c10;
-  --bg-card: #11141b;
+  --bg-main: #020408;
+  --bg-card: rgba(13, 17, 23, 0.7);
   --neon-cyan: #00f2ff;
   --neon-emerald: #10b981;
   --neon-red: #ef4444;
+  --neon-purple: #8b5cf6;
   --text-dim: #94a3b8;
 }
 
@@ -17,86 +18,83 @@ body {
   color: white;
   margin: 0;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
-/* 🧠 NEURAL GRID BACKGROUND */
+/* 🧠 PREMIUM NEURAL GRADIENT BACKGROUND */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image: 
-    linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+  background: 
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 100% 0%, rgba(0, 242, 255, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #020408 0%, #05070a 100%);
   pointer-events: none;
   z-index: -1;
 }
 
-/* 🧱 PREMIUM CARD */
+/* 🧱 PREMIUM GLASS CARD */
 .card {
-  background: var(--bg-card);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card:hover {
   border-color: rgba(0, 242, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+  box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+  transform: translateY(-4px) scale(1.01);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+}
+
+/* 🖥️ TERMINAL STYLE */
+.terminal-window {
+  background: rgba(2, 4, 8, 0.9);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+/* 🏷️ ACTIVE NAV */
+.active-nav {
+  background: rgba(0, 242, 255, 0.1);
+  border-right: 3px solid var(--neon-cyan);
+  color: var(--neon-cyan) !important;
+  box-shadow: inset -10px 0 20px -10px rgba(0, 242, 255, 0.3);
 }
 
 /* ✨ NEON TEXT */
 .neon-text-cyan {
   color: var(--neon-cyan);
-  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-}
-
-.neon-text-emerald {
-  color: var(--neon-emerald);
-  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
-/* 🚥 NEON BORDER UTILITY */
-.neon-border-cyan {
-  border: 1px solid var(--neon-cyan);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
-}
-
-/* 📊 CHART OVERRIDES */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
-  stroke: rgba(255, 255, 255, 0.05);
-}
-
-.recharts-curve.recharts-line-curve {
-  filter: drop-shadow(0 0 8px var(--neon-emerald));
-}
-
-/* 🖥️ TERMINAL STYLE */
-.terminal-window {
-  background: #050608;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.terminal-header {
-  background: #11141b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* 🏷️ ACTIVE TAB */
-.active-nav {
-  background: linear-gradient(90deg, rgba(0, 242, 255, 0.1) 0%, transparent 100%);
-  border-left: 3px solid var(--neon-cyan);
-  color: var(--neon-cyan) !important;
+  text-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
 }
 
 /* 🌀 GLOWING DOT */
 .glow-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--neon-emerald);
-  box-shadow: 0 0 10px var(--neon-emerald);
+  background: var(--neon-cyan);
+  box-shadow: 0 0 15px var(--neon-cyan), 0 0 30px var(--neon-cyan);
+}
+
+/* 📂 SCROLLBAR */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
 }

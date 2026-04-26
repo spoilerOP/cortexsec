@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import AIChat from "./components/AIChat";
 import { askAI, getReports, saveReport, deleteRemoteReport } from "./utils/ai";
 import IDORLab from "./IDORLab";
-import { Radar, Bomb, Brain, Trophy, Menu, X } from "lucide-react";
+import { Radar, Bomb, Brain, Trophy, Menu, X, MessageSquare } from "lucide-react";
 
 import {
   LineChart,
@@ -12,11 +12,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  BarChart,
-  Bar,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
   ResponsiveContainer
 } from "recharts";
 
@@ -46,10 +41,10 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#0a0c10]">
+    <div className="flex flex-col md:flex-row min-h-screen">
       
       {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-[#0a0c10]/80 backdrop-blur-md sticky top-0 z-50">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-white/5 bg-black/20 backdrop-blur-xl sticky top-0 z-50">
         <div>
            <h1 className="text-xl font-bold tracking-tighter text-white">CORTEX<span className="text-[#00f2ff]">SEC</span></h1>
            <p className="text-[10px] text-[#00f2ff]/60 tracking-widest uppercase">Neural Defense System</p>
@@ -69,11 +64,11 @@ export default function App() {
 
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 w-64 p-6 border-r border-white/5 bg-[#0a0c10] z-50 transform transition-transform duration-300 flex flex-col
+        fixed inset-y-0 left-0 w-64 p-6 border-r border-white/5 bg-black/10 backdrop-blur-2xl z-50 transform transition-transform duration-300 flex flex-col
         md:relative md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="mb-12">
-          <h1 className="text-2xl font-extrabold tracking-tighter text-white">CORTEX<span className="text-[#00f2ff]">SEC</span></h1>
+          <h1 className="text-2xl font-extrabold tracking-tighter text-white">CORTEX<span className="text-[#00f2ff] drop-shadow-[0_0_8px_rgba(0,242,255,0.8)]">SEC</span></h1>
           <p className="text-[10px] text-[#00f2ff]/60 tracking-widest uppercase font-bold">Neural Defense System</p>
         </div>
 
@@ -81,7 +76,8 @@ export default function App() {
           {[
             ["dashboard", "Dashboard", <Radar size={18} />],
             ["labs", "Labs", <Bomb size={18} />],
-            ["reports", "AI Insights", <Brain size={18} />],
+            ["ai", "AI Assistant", <Brain size={18} />],
+            ["reports", "Reports", <MessageSquare size={18} />],
             ["leaderboard", "Leaderboard", <Trophy size={18} />],
           ].map(([key, label, icon]) => (
             <div
@@ -118,28 +114,30 @@ export default function App() {
 
       {/* Main Content */}
       <div className="flex-1 p-4 md:p-10 overflow-x-hidden">
-        {page === "dashboard" && <Dashboard reports={reports} />}
+        {page === "dashboard" && <Dashboard reports={reports} logs={logs} />}
         {page === "labs" && (
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-extrabold tracking-tight">ACTIVE <span className="text-[#00f2ff]">MISSIONS</span></h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="card p-6 group cursor-pointer" onClick={() => setSubLab("brute")}>
-                  <div className="flex justify-between items-start mb-4">
+               <div className="card p-6 group cursor-pointer relative overflow-hidden" onClick={() => setSubLab("brute")}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#10b981]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex justify-between items-start mb-4 relative z-10">
                      <span className="text-[10px] bg-[#10b981]/10 text-[#10b981] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Easy</span>
                      <span className="text-xs text-gray-500 font-bold">100 PTS</span>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors">Login Bypass</h3>
-                  <p className="text-sm text-gray-400">Identify and exploit rate limiting flaws in authentication systems.</p>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors relative z-10">Login Bypass</h3>
+                  <p className="text-sm text-gray-400 relative z-10">Identify and exploit rate limiting flaws in authentication systems.</p>
                </div>
-               <div className="card p-6 group cursor-pointer" onClick={() => setSubLab("idor")}>
-                  <div className="flex justify-between items-start mb-4">
+               <div className="card p-6 group cursor-pointer relative overflow-hidden" onClick={() => setSubLab("idor")}>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#3b82f6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex justify-between items-start mb-4 relative z-10">
                      <span className="text-[10px] bg-[#3b82f6]/10 text-[#3b82f6] px-2 py-0.5 rounded font-bold uppercase tracking-widest">Medium</span>
                      <span className="text-xs text-gray-500 font-bold">250 PTS</span>
                   </div>
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors">IDOR API</h3>
-                  <p className="text-sm text-gray-400">Exploit insecure direct object references to access unauthorized data.</p>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-[#00f2ff] transition-colors relative z-10">IDOR API</h3>
+                  <p className="text-sm text-gray-400 relative z-10">Exploit insecure direct object references to access unauthorized data.</p>
                </div>
             </div>
 
@@ -164,6 +162,14 @@ export default function App() {
         {page === "reports" && (
           <Reports reports={reports} setReports={setReports} />
         )}
+
+        {page === "ai" && (
+          <AIChat 
+            reports={reports} 
+            logs={logs} 
+            userProfile={userProfile} 
+          />
+        )}
       </div>
     </div>
   );
@@ -171,13 +177,19 @@ export default function App() {
 
 /* ================= DASHBOARD ================= */
 
-function Dashboard({ reports }) {
-  const [animatedScore, setAnimatedScore] = useState(0);
+function Dashboard({ reports, logs }) {
   const severityCount = { HIGH: 0, MEDIUM: 0, LOW: 0 };
-
   reports.forEach((r) => {
     severityCount[r.severity]++;
   });
+
+  // 🧠 Dynamic Calculations
+  const stats = {
+    recon: Math.min(Math.round((reports.length / 5) * 100), 100),
+    exploit: Math.min(Math.round((severityCount.HIGH / 3) * 100), 100),
+    creativity: Math.min(reports.length * 20, 100),
+    score: reports.length * 250,
+  };
 
   const skillData = [
     { name: "Week 1", value: 40 },
@@ -193,10 +205,10 @@ function Dashboard({ reports }) {
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard label="Recon" value="34%" color="#00f2ff" />
-        <StatCard label="Exploit" value="71%" color="#ef4444" />
-        <StatCard label="Creativity" value="48%" color="#eab308" />
-        <StatCard label="Score" value="142%" color="#10b981" />
+        <StatCard label="Recon" value={`${stats.recon}%`} percentage={stats.recon} color="#00f2ff" />
+        <StatCard label="Exploit" value={`${stats.exploit}%`} percentage={stats.exploit} color="#ef4444" />
+        <StatCard label="Creativity" value={`${stats.creativity}%`} percentage={stats.creativity} color="#eab308" />
+        <StatCard label="Score" value={stats.score} percentage={Math.min(stats.score/20, 100)} color="#10b981" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
@@ -209,7 +221,7 @@ function Dashboard({ reports }) {
                  <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">Skill Growth - Last 30 Days</p>
               </div>
               <div className="text-right">
-                 <p className="text-[#10b981] font-black text-xl">+12.4%</p>
+                 <p className="bg-gradient-to-r from-[#10b981] to-[#00f2ff] bg-clip-text text-transparent font-black text-2xl">+12.4%</p>
                  <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">System Efficiency</p>
               </div>
            </div>
@@ -226,7 +238,7 @@ function Dashboard({ reports }) {
                     <XAxis dataKey="name" hide />
                     <YAxis hide />
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#0a0c10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: 'rgba(2, 4, 8, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(10px)' }}
                       itemStyle={{ color: '#10b981' }}
                     />
                     <Line 
@@ -300,12 +312,39 @@ function Dashboard({ reports }) {
   );
 }
 
-function StatCard({ label, value, color }) {
+function StatCard({ label, value, color, percentage = 0 }) {
   return (
-    <div className="card p-6 flex flex-col items-center justify-center text-center group">
-       <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase mb-1">{label}</p>
-       <p className="text-2xl font-black italic tracking-tighter transition-all duration-300 group-hover:scale-110" style={{ color }}>{value}</p>
-       <div className="w-8 h-1 mt-4 rounded-full opacity-20 group-hover:opacity-100 transition-opacity" style={{ backgroundColor: color }} />
+    <div className="card p-6 flex flex-col items-center justify-center text-center group relative overflow-hidden">
+       {/* 🎨 Interior Light Gradient */}
+       <div 
+         className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity"
+         style={{ background: `linear-gradient(135deg, ${color}, transparent)` }}
+       />
+
+       <p className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mb-1 z-10">{label}</p>
+       <p className="text-3xl font-black italic tracking-tighter transition-all duration-300 group-hover:scale-110 z-10" 
+          style={{ 
+            color: color,
+            textShadow: `0 0 20px ${color}44`
+          }}>{value}</p>
+       
+       {/* 📊 Progress Meter */}
+       <div className="w-full h-1.5 bg-white/5 mt-4 rounded-full overflow-hidden relative z-10">
+          <div 
+            className="h-full transition-all duration-1000 ease-out" 
+            style={{ 
+              width: `${percentage}%`, 
+              background: `linear-gradient(90deg, ${color}, ${color}88)`,
+              boxShadow: `0 0 15px ${color}`
+            }} 
+          />
+       </div>
+
+       {/* Background Glow */}
+       <div 
+         className="absolute -bottom-4 -right-4 w-16 h-16 blur-2xl opacity-0 group-hover:opacity-30 transition-opacity" 
+         style={{ backgroundColor: color }} 
+       />
     </div>
   );
 }
